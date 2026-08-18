@@ -243,12 +243,6 @@ function menuRunSync_() {
   );
 }
 
-function jsonOutput_(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
-    ContentService.MimeType.JSON
-  );
-}
-
 const DASHBOARD_HTML = `<!doctype html>
 <html lang="en">
 <head>
@@ -297,10 +291,20 @@ const DASHBOARD_HTML = `<!doctype html>
     const checkBtn = document.getElementById("checkBtn");
     const syncBtn = document.getElementById("syncBtn");
 
-    function load(action) {
-      const url = "?action=" + action + "&t=" + Date.now();
-      return fetch(url)
-        .then((r) => r.json())
+    // google.script.run is Apps Script's client<->server bridge for
+    // HtmlService pages - avoids fetch() entirely, which bounces through a
+    // separate googleusercontent.com origin and re-triggers Google sign-in.
+    function callServer(fnName) {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          [fnName]();
+      });
+    }
+
+    function load(fnName) {
+      return callServer(fnName)
         .then(render)
         .catch((err) => {
           statusBox.className = "status warn";
@@ -308,20 +312,24 @@ const DASHBOARD_HTML = `<!doctype html>
         });
     }
 
-    function withLoading(btn, action) {
+    function withLoading(btn, label, fnName) {
       btn.disabled = true;
       checkBtn.disabled = true;
       syncBtn.disabled = true;
       statusBox.className = "status unknown";
-      statusBox.textContent = "Running " + action + "...";
-      load(action).finally(() => {
+      statusBox.textContent = "Running " + label + "...";
+      load(fnName).finally(() => {
         checkBtn.disabled = false;
         syncBtn.disabled = false;
       });
     }
 
-    checkBtn.addEventListener("click", () => withLoading(checkBtn, "check"));
-    syncBtn.addEventListener("click", () => withLoading(syncBtn, "sync"));
+    checkBtn.addEventListener("click", () =>
+      withLoading(checkBtn, "check", "clientRunCheck")
+    );
+    syncBtn.addEventListener("click", () =>
+      withLoading(syncBtn, "sync", "clientRunSync")
+    );
 
     function render(s) {
       if (s.error) {
@@ -362,30 +370,29 @@ const DASHBOARD_HTML = `<!doctype html>
       return d.innerHTML;
     }
 
-    load("status");
+    load("clientLoadStatus");
   </script>
 </body>
 </html>
 `;
 
-/**
- * Web app entrypoint.
- * No params -> full HTML dashboard (same-origin, so its own fetch() calls
- * back into this same doGet work without any CORS/auth wrinkle).
- * ?action=status -> cached JSON status, no recompute.
- * ?action=check -> recompute (read-only), returns JSON.
- * ?action=sync -> recompute + write missing rows, returns JSON.
- */
+// Public wrappers callable from the client via google.script.run. Plain
+// (non-underscore) names since that's just an Apps-Script-menu-visibility
+// convention, not a real access restriction - kept separate from the
+// underscore-suffixed internals anyway for a clear client/server boundary.
+function clientLoadStatus() {
+  return loadStatus_();
+}
+function clientRunCheck() {
+  return runCheck_();
+}
+function clientRunSync() {
+  return runSync_();
+}
+
+/** Web app entrypoint: always serves the HTML dashboard. */
 function doGet(e) {
-  const action = e && e.parameter && e.parameter.action;
-  try {
-    if (action === "check") return jsonOutput_(runCheck_());
-    if (action === "sync") return jsonOutput_(runSync_());
-    if (action === "status") return jsonOutput_(loadStatus_());
-    return HtmlService.createHtmlOutput(DASHBOARD_HTML).setTitle(
-      "Product Category Sync"
-    );
-  } catch (err) {
-    return jsonOutput_({ error: String(err) });
-  }
+  return HtmlService.createHtmlOutput(DASHBOARD_HTML).setTitle(
+    "Product Category Sync"
+  );
 }
