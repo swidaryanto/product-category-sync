@@ -1,0 +1,23 @@
+README.md
+  s_ebeefc1f120167::t_c236d1289f23c3 43-49,51-53,55
+docs/index.html
+  s_ebeefc1f120167::t_e78bc05576244f 6,8,10-12
+apps-script/Code.gs
+  s_ebeefc1f120167::t_4f302ce710a388 252-378,384-387
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b00912dcb7e93df3e311a8f7576af3ac3b2069dc",
+  "prompts": {},
+  "sessions": {
+    "s_ebeefc1f120167": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7070b17-284b-4999-83ac-749e3cbd1716",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "septianwidar <septian@hypefast.id>"
+    }
+  }
+}
