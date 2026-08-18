@@ -1,0 +1,22 @@
+README.md
+  s_ebeefc1f120167::t_95cada0809a1c5 33-36
+apps-script/Code.gs
+  s_ebeefc1f120167::t_83fb2b66a28f2f 28,30
+  s_ebeefc1f120167::t_f01caa0c745a56 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3083e0f3cc6c68f7b5d035852a7462a7565e5bd0",
+  "prompts": {},
+  "sessions": {
+    "s_ebeefc1f120167": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7070b17-284b-4999-83ac-749e3cbd1716",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "septianwidar <septian@hypefast.id>"
+    }
+  }
+}
