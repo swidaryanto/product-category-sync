@@ -13,7 +13,7 @@
 
 const CAT_TREE_SPREADSHEET_ID = "1AaY9aJL_rPQ9qmPCW9XG9jZufgHFjw0FUPOS-x1BBm8";
 const CAT_TREE_SHEET_NAME = "Cat Tree RM";
-const CATEGORY_LEVELS = 5; // Lv0..Lv4 are category nodes; Lv5 is SKU-level detail.
+const CATEGORY_LEVELS = 6; // Lv0..Lv5, full Cat Tree RM depth.
 
 const PRODUCT_CATEGORY_SPREADSHEET_ID =
   "1WNGKMwUgqVNv1PBMjXMq02Effzs5x7-X0cXRPkPUHf4";
@@ -25,9 +25,9 @@ const STATUS_PROPERTY_KEY = "PRODUCT_CATEGORY_SYNC_STATUS";
 
 /**
  * Reads Cat Tree RM and derives the unique set of category nodes across
- * Lv0-Lv4, each as { name, parentPath }. Cat Tree RM has heavy row-level
+ * Lv0-Lv5, each as { name, parentPath }. Cat Tree RM has heavy row-level
  * duplication by design (a per-SKU leaf list, not a deduped tree) - we
- * dedupe on the full (Lv0..Lv4) tuple here.
+ * dedupe on the full (Lv0..Lv5) tuple here.
  */
 function getCategoryNodes_() {
   const sheet = SpreadsheetApp.openById(CAT_TREE_SPREADSHEET_ID).getSheetByName(

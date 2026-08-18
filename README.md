@@ -30,10 +30,10 @@ Run Check Now / Run Sync Now** — for anyone with the sheet open.
 
 ## How the tree maps to sheet rows
 
-Cat Tree RM columns are `Lv0 (Product Group)` .. `Lv5 (Description)`. Lv0-Lv4
-are treated as category nodes (Lv5 is SKU-level detail, not a category).
-Each unique `(Lv0..Lv4)` prefix becomes one row in `Product Category` as
-`{ name, parent }`, where `parent` is the ancestor chain joined with `" / "`.
+Cat Tree RM columns are `Lv0 (Product Group)` .. `Lv5 (Description)`, all
+six treated as category nodes. Each unique `(Lv0..Lv5)` prefix becomes one
+row in `Product Category` as `{ name, parent }`, where `parent` is the
+ancestor chain joined with `" / "`.
 Cat Tree RM has heavy row-level duplication (it's a per-leaf list, not a
 deduped tree) — `apps-script/Code.gs`'s `getCategoryNodes_()` dedupes on the
 full tuple.
