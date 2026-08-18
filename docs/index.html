@@ -16,10 +16,13 @@
     th { background: #f5f5f5; }
     code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
     .meta { color: #666; font-size: 13px; }
-    a.button {
-      display: inline-block; margin-top: 12px; padding: 8px 14px;
-      background: #24292f; color: white; text-decoration: none; border-radius: 6px;
+    button {
+      margin-top: 12px; margin-right: 8px; padding: 8px 14px;
+      background: #24292f; color: white; border: none; border-radius: 6px; cursor: pointer;
+      font-size: 14px;
     }
+    button:disabled { opacity: 0.5; cursor: default; }
+    button.secondary { background: #57606a; }
   </style>
 </head>
 <body>
@@ -31,34 +34,71 @@
   <div id="statusBox" class="status unknown">Loading...</div>
 
   <p>
-    <a class="button" href="https://github.com/swidaryanto/product-category-sync/actions" target="_blank" rel="noopener">Open Actions tab to run Check / Sync</a>
+    <button id="checkBtn">Run Check Now</button>
+    <button id="syncBtn" class="secondary">Run Sync Now (writes missing rows)</button>
   </p>
 
   <div id="detail"></div>
 
   <script>
-    fetch("status.json?t=" + Date.now())
-      .then((r) => r.json())
-      .then(render)
-      .catch((err) => {
-        document.getElementById("statusBox").textContent = "Failed to load status.json: " + err;
+    // Paste your Apps Script Web App deployment URL here (Deploy > New deployment > Web app).
+    const WEB_APP_URL = "PASTE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+    const statusBox = document.getElementById("statusBox");
+    const detail = document.getElementById("detail");
+    const checkBtn = document.getElementById("checkBtn");
+    const syncBtn = document.getElementById("syncBtn");
+
+    function load(action) {
+      const url = action
+        ? WEB_APP_URL + "?action=" + action + "&t=" + Date.now()
+        : WEB_APP_URL + "?t=" + Date.now();
+      return fetch(url)
+        .then((r) => r.json())
+        .then(render)
+        .catch((err) => {
+          statusBox.className = "status warn";
+          statusBox.textContent = "Failed to load status: " + err;
+        });
+    }
+
+    function withLoading(btn, action) {
+      btn.disabled = true;
+      checkBtn.disabled = true;
+      syncBtn.disabled = true;
+      statusBox.className = "status unknown";
+      statusBox.textContent = "Running " + action + "...";
+      load(action).finally(() => {
+        checkBtn.disabled = false;
+        syncBtn.disabled = false;
       });
+    }
+
+    checkBtn.addEventListener("click", () => withLoading(checkBtn, "check"));
+    syncBtn.addEventListener("click", () => withLoading(syncBtn, "sync"));
 
     function render(s) {
-      const box = document.getElementById("statusBox");
-      if (s.lastCheckedAt === null) {
-        box.className = "status unknown";
-        box.textContent = "No check has run yet. Trigger the Check workflow from the Actions tab.";
+      if (s.error) {
+        statusBox.className = "status warn";
+        statusBox.textContent = "Error: " + s.error;
         return;
       }
 
-      box.className = "status " + (s.inSync ? "ok" : "warn");
-      box.textContent = s.inSync
+      if (s.lastCheckedAt === null) {
+        statusBox.className = "status unknown";
+        statusBox.textContent = "No check has run yet. Click \"Run Check Now\".";
+        return;
+      }
+
+      statusBox.className = "status " + (s.inSync ? "ok" : "warn");
+      statusBox.textContent = s.inSync
         ? `In sync as of ${s.lastCheckedAt}`
         : `${s.missingCount} node(s) missing as of ${s.lastCheckedAt}`;
 
-      const detail = document.getElementById("detail");
       let html = `<p class="meta">Cat Tree RM nodes: ${s.totalCatTreeNodes} · Product Category rows: ${s.totalExisting}</p>`;
+      if (s.lastSyncAt) {
+        html += `<p class="meta">Last sync: ${s.lastSyncAt} · wrote ${s.lastSyncWrote} row(s)</p>`;
+      }
 
       if (s.missing && s.missing.length > 0) {
         html += "<table><tr><th>Name</th><th>Parent</th></tr>";
@@ -74,6 +114,13 @@
       const d = document.createElement("div");
       d.textContent = s ?? "";
       return d.innerHTML;
+    }
+
+    if (WEB_APP_URL.indexOf("PASTE_") === 0) {
+      statusBox.className = "status warn";
+      statusBox.textContent = "Set WEB_APP_URL in index.html to your Apps Script Web App deployment URL first.";
+    } else {
+      load();
     }
   </script>
 </body>
