@@ -40,10 +40,19 @@ full tuple.
 
 ## Dashboard
 
-`docs/index.html`, served via GitHub Pages
-(`https://swidaryanto.github.io/product-category-sync/`), fetches the Apps
-Script Web App URL directly:
+The actual dashboard is served by Apps Script itself (`doGet()` in
+`Code.gs` returns a full HTML page when hit with no query params) — this is
+necessary because Google's Workspace policy on this account forces sign-in
+on every request to the Web App and doesn't return CORS headers, so a
+separate page can't `fetch()` it in the background; it only works as a
+direct, logged-in page visit.
 
+`docs/index.html`, served via GitHub Pages
+(`https://swidaryanto.github.io/product-category-sync/`), is just a
+redirect to that Apps Script URL, so the GitHub Pages link still works as a
+stable bookmark.
+
+On the dashboard itself:
 - Loading the page (or clicking **Run Check Now**) hits `?action=check` —
   read-only, recomputes the diff, doesn't write anything.
 - **Run Sync Now** hits `?action=sync` — writes any missing rows into

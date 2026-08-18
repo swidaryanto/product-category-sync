@@ -249,13 +249,142 @@ function jsonOutput_(obj) {
   );
 }
 
-/** Web app entrypoint: GET returns cached status; ?action=check or ?action=sync recompute. */
+const DASHBOARD_HTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Product Category Sync</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 20px; }
+    .status { padding: 12px; border-radius: 6px; margin: 16px 0; }
+    .ok { background: #e6f7ed; color: #1a7f37; }
+    .warn { background: #fff3e0; color: #b7791f; }
+    .unknown { background: #eee; color: #555; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; font-size: 13px; }
+    th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+    th { background: #f5f5f5; }
+    code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
+    .meta { color: #666; font-size: 13px; }
+    button {
+      margin-top: 12px; margin-right: 8px; padding: 8px 14px;
+      background: #24292f; color: white; border: none; border-radius: 6px; cursor: pointer;
+      font-size: 14px;
+    }
+    button:disabled { opacity: 0.5; cursor: default; }
+    button.secondary { background: #57606a; }
+  </style>
+</head>
+<body>
+  <h1>Product Category Sync</h1>
+  <p class="meta">
+    Compares the <code>Product Category</code> sheet against <code>Cat Tree RM</code>.
+  </p>
+
+  <div id="statusBox" class="status unknown">Loading...</div>
+
+  <p>
+    <button id="checkBtn">Run Check Now</button>
+    <button id="syncBtn" class="secondary">Run Sync Now (writes missing rows)</button>
+  </p>
+
+  <div id="detail"></div>
+
+  <script>
+    const statusBox = document.getElementById("statusBox");
+    const detail = document.getElementById("detail");
+    const checkBtn = document.getElementById("checkBtn");
+    const syncBtn = document.getElementById("syncBtn");
+
+    function load(action) {
+      const url = "?action=" + action + "&t=" + Date.now();
+      return fetch(url)
+        .then((r) => r.json())
+        .then(render)
+        .catch((err) => {
+          statusBox.className = "status warn";
+          statusBox.textContent = "Failed to load status: " + err;
+        });
+    }
+
+    function withLoading(btn, action) {
+      btn.disabled = true;
+      checkBtn.disabled = true;
+      syncBtn.disabled = true;
+      statusBox.className = "status unknown";
+      statusBox.textContent = "Running " + action + "...";
+      load(action).finally(() => {
+        checkBtn.disabled = false;
+        syncBtn.disabled = false;
+      });
+    }
+
+    checkBtn.addEventListener("click", () => withLoading(checkBtn, "check"));
+    syncBtn.addEventListener("click", () => withLoading(syncBtn, "sync"));
+
+    function render(s) {
+      if (s.error) {
+        statusBox.className = "status warn";
+        statusBox.textContent = "Error: " + s.error;
+        return;
+      }
+
+      if (s.lastCheckedAt === null) {
+        statusBox.className = "status unknown";
+        statusBox.textContent = 'No check has run yet. Click "Run Check Now".';
+        return;
+      }
+
+      statusBox.className = "status " + (s.inSync ? "ok" : "warn");
+      statusBox.textContent = s.inSync
+        ? \`In sync as of \${s.lastCheckedAt}\`
+        : \`\${s.missingCount} node(s) missing as of \${s.lastCheckedAt}\`;
+
+      let html = \`<p class="meta">Cat Tree RM nodes: \${s.totalCatTreeNodes} · Product Category rows: \${s.totalExisting}</p>\`;
+      if (s.lastSyncAt) {
+        html += \`<p class="meta">Last sync: \${s.lastSyncAt} · wrote \${s.lastSyncWrote} row(s)</p>\`;
+      }
+
+      if (s.missing && s.missing.length > 0) {
+        html += "<table><tr><th>Name</th><th>Parent</th></tr>";
+        for (const n of s.missing) {
+          html += \`<tr><td>\${escapeHtml(n.name)}</td><td>\${escapeHtml(n.parentPath)}</td></tr>\`;
+        }
+        html += "</table>";
+      }
+      detail.innerHTML = html;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s ?? "";
+      return d.innerHTML;
+    }
+
+    load("status");
+  </script>
+</body>
+</html>
+`;
+
+/**
+ * Web app entrypoint.
+ * No params -> full HTML dashboard (same-origin, so its own fetch() calls
+ * back into this same doGet work without any CORS/auth wrinkle).
+ * ?action=status -> cached JSON status, no recompute.
+ * ?action=check -> recompute (read-only), returns JSON.
+ * ?action=sync -> recompute + write missing rows, returns JSON.
+ */
 function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
   try {
     if (action === "check") return jsonOutput_(runCheck_());
     if (action === "sync") return jsonOutput_(runSync_());
-    return jsonOutput_(loadStatus_());
+    if (action === "status") return jsonOutput_(loadStatus_());
+    return HtmlService.createHtmlOutput(DASHBOARD_HTML).setTitle(
+      "Product Category Sync"
+    );
   } catch (err) {
     return jsonOutput_({ error: String(err) });
   }
