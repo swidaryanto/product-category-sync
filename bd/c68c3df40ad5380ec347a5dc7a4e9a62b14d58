@@ -1,0 +1,19 @@
+apps-script/.clasp.json
+  s_ebeefc1f120167::t_f1859afeee2a24 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bdc68c3df40ad5380ec347a5dc7a4e9a62b14d58",
+  "prompts": {},
+  "sessions": {
+    "s_ebeefc1f120167": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7070b17-284b-4999-83ac-749e3cbd1716",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "septianwidar <septian@hypefast.id>"
+    }
+  }
+}
