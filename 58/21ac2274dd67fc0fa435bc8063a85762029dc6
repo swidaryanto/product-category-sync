@@ -1,0 +1,47 @@
+docs/index.html
+  s_ebeefc1f120167::t_359e11125e94c2 1-33,35-80
+  s_ebeefc1f120167::t_0b5cade0dbe895 34
+scripts/sync.js
+  s_ebeefc1f120167::t_90e7ba8a564769 1-52
+.github/workflows/check.yml
+  s_ebeefc1f120167::t_bd732847502bd0 1-33
+README.md
+  s_ebeefc1f120167::t_90fd516cec7323 1-32
+scripts/check.js
+  s_ebeefc1f120167::t_8421fddc864f96 1-19,21-38
+  s_ebeefc1f120167::t_d1ec99f377d236 20
+.gitignore
+  s_ebeefc1f120167::t_3bbc65ab63dc4b 1-4
+scripts/lib/cattree.js
+  s_ebeefc1f120167::t_b7e1e989072ebc 1-10,12-39,41-52
+  s_ebeefc1f120167::t_c95cc24b255361 11
+  s_ebeefc1f120167::t_01614e57ce2f39 40
+scripts/lib/composio.js
+  s_ebeefc1f120167::t_82627f1e614c0e 22
+  s_ebeefc1f120167::t_ea4eff4421b9eb 1
+  s_ebeefc1f120167::t_88e4257deb16c5 2-21,23-33
+package.json
+  s_ebeefc1f120167::t_d38f7fa593d34c 1-14
+.github/workflows/sync.yml
+  s_ebeefc1f120167::t_5ed87168e76375 1-31
+docs/status.json
+  s_ebeefc1f120167::t_bf694977764120 1-9
+scripts/lib/productcategory.js
+  s_ebeefc1f120167::t_f1bf9c8a2790ad 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5821ac2274dd67fc0fa435bc8063a85762029dc6",
+  "prompts": {},
+  "sessions": {
+    "s_ebeefc1f120167": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7070b17-284b-4999-83ac-749e3cbd1716",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "septianwidar <septian@hypefast.id>"
+    }
+  }
+}
