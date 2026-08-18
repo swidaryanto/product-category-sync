@@ -350,8 +350,8 @@ const DASHBOARD_HTML = `<!doctype html>
 
       statusBox.className = "status " + (s.inSync ? "ok" : "warn");
       statusBox.textContent = s.inSync
-        ? \`In sync as of \${formatDate(s.lastCheckedAt)}\`
-        : \`\${s.missingCount} node(s) missing as of \${formatDate(s.lastCheckedAt)}\`;
+        ? \`Synced at \${formatDate(s.lastCheckedAt)}\`
+        : \`\${s.missingCount} node(s) missing — last checked \${formatDate(s.lastCheckedAt)}\`;
 
       let html = \`<p class="meta">Cat Tree RM nodes: \${s.totalCatTreeNodes} · Product Category rows: \${s.totalExisting}</p>\`;
       if (s.lastSyncAt) {
@@ -369,10 +369,15 @@ const DASHBOARD_HTML = `<!doctype html>
     }
 
     function formatDate(iso) {
-      return new Date(iso).toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
+      const d = new Date(iso);
+      const datePart = d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       });
+      const pad = (n) => String(n).padStart(2, "0");
+      const timePart = \`\${pad(d.getHours())}:\${pad(d.getMinutes())}:\${pad(d.getSeconds())}\`;
+      return \`\${datePart} - \${timePart}\`;
     }
 
     function escapeHtml(s) {
