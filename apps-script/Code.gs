@@ -219,8 +219,8 @@ function dailyCheck() {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Product Category Sync")
-    .addItem("Run Check Now", "menuRunCheck_")
-    .addItem("Run Sync Now", "menuRunSync_")
+    .addItem("Check for Gaps", "menuRunCheck_")
+    .addItem("Fill in Gaps", "menuRunSync_")
     .addToUi();
 }
 
@@ -279,8 +279,12 @@ const DASHBOARD_HTML = `<!doctype html>
   <div id="statusBox" class="status unknown">Loading...</div>
 
   <p>
-    <button id="checkBtn">Run Check Now</button>
-    <button id="syncBtn" class="secondary">Run Sync Now (writes missing rows)</button>
+    <button id="checkBtn">Check for Gaps</button>
+    <button id="syncBtn" class="secondary">Fill in Gaps</button>
+  </p>
+  <p class="meta">
+    <strong>Check for Gaps</strong> — read-only, just recomputes the diff.
+    <strong>Fill in Gaps</strong> — writes any missing categories into the sheet.
   </p>
 
   <div id="detail"></div>
@@ -340,18 +344,18 @@ const DASHBOARD_HTML = `<!doctype html>
 
       if (s.lastCheckedAt === null) {
         statusBox.className = "status unknown";
-        statusBox.textContent = 'No check has run yet. Click "Run Check Now".';
+        statusBox.textContent = 'No check has run yet. Click "Check for Gaps".';
         return;
       }
 
       statusBox.className = "status " + (s.inSync ? "ok" : "warn");
       statusBox.textContent = s.inSync
-        ? \`In sync as of \${s.lastCheckedAt}\`
-        : \`\${s.missingCount} node(s) missing as of \${s.lastCheckedAt}\`;
+        ? \`In sync as of \${formatDate(s.lastCheckedAt)}\`
+        : \`\${s.missingCount} node(s) missing as of \${formatDate(s.lastCheckedAt)}\`;
 
       let html = \`<p class="meta">Cat Tree RM nodes: \${s.totalCatTreeNodes} · Product Category rows: \${s.totalExisting}</p>\`;
       if (s.lastSyncAt) {
-        html += \`<p class="meta">Last sync: \${s.lastSyncAt} · wrote \${s.lastSyncWrote} row(s)</p>\`;
+        html += \`<p class="meta">Last sync: \${formatDate(s.lastSyncAt)} · wrote \${s.lastSyncWrote} row(s)</p>\`;
       }
 
       if (s.missing && s.missing.length > 0) {
@@ -362,6 +366,13 @@ const DASHBOARD_HTML = `<!doctype html>
         html += "</table>";
       }
       detail.innerHTML = html;
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
     }
 
     function escapeHtml(s) {
